@@ -2,14 +2,59 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-APP_NAME="${1:-DiscordGuild}"
-DEFAULT_GUILD="${2:-}"
 
-echo "Building $APP_NAME..."
+# Defaults
+APP_NAME="DiscordGuild"
+DEFAULT_GUILD=""
+ICON_COLOR="blurple"
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --name)
+      APP_NAME="$2"
+      shift 2
+      ;;
+    --guild)
+      DEFAULT_GUILD="$2"
+      shift 2
+      ;;
+    --color)
+      ICON_COLOR="$2"
+      shift 2
+      ;;
+    --help|-h)
+      echo "Usage: ./build.sh [options]"
+      echo ""
+      echo "Options:"
+      echo "  --name NAME     App name (default: DiscordGuild)"
+      echo "  --guild ID      Default guild ID (default: @me)"
+      echo "  --color COLOR   Icon color: blurple, pink, red, yellow, green, cyan"
+      echo ""
+      echo "Example:"
+      echo "  ./build.sh --name HouseOfHaku --guild 1460071718444994726 --color cyan"
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $1"
+      exit 1
+      ;;
+  esac
+done
+
+ICON_PATH="$SCRIPT_DIR/icons/discord-${ICON_COLOR}.png"
+if [ ! -f "$ICON_PATH" ]; then
+  echo "Error: Icon not found: $ICON_PATH"
+  echo "Available colors: blurple, pink, red, yellow, green, cyan"
+  exit 1
+fi
+
+echo "Building $APP_NAME with $ICON_COLOR icon..."
 
 # Build with nativefier
 npx nativefier \
   --name "$APP_NAME" \
+  --icon "$ICON_PATH" \
   --inject "$SCRIPT_DIR/hide-sidebar.css" \
   --single-instance \
   --tray \
@@ -47,6 +92,3 @@ echo "✓ Built: $OUTPUT_DIR"
 echo ""
 echo "Usage:"
 echo "  $OUTPUT_DIR/launch.sh [guild_id]"
-echo ""
-echo "Example:"
-echo "  $OUTPUT_DIR/launch.sh 1460071718444994726"
