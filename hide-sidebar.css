@@ -1,0 +1,17 @@
+/* Hide the guilds nav */
+nav[aria-label="Servers sidebar"] {
+  display: none !important;
+}
+
+/* Shrink the parent container to fit only channel nav (don't hide it!) */
+div[data-collapsed]:has(nav[aria-label="Servers sidebar"]) {
+  width: auto !important;
+  min-width: 0 !important;
+  flex: 0 0 auto !important;
+  padding: 0 !important;
+}
+
+/* Hide user status/settings panel */
+section[aria-label="User status and settings"] {
+  display: none !important;
+}
