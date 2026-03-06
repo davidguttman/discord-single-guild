@@ -6,7 +6,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Defaults
 APP_NAME="DiscordGuild"
 DEFAULT_GUILD=""
-ICON_COLOR="blurple"
+ICON_COLOR=""
+ICON_PATH=""
 INSTALL=false
 
 # Parse arguments
@@ -24,6 +25,10 @@ while [[ $# -gt 0 ]]; do
       ICON_COLOR="$2"
       shift 2
       ;;
+    --icon)
+      ICON_PATH="$2"
+      shift 2
+      ;;
     --install)
       INSTALL=true
       shift
@@ -34,11 +39,13 @@ while [[ $# -gt 0 ]]; do
       echo "Options:"
       echo "  --name NAME     App name (default: DiscordGuild)"
       echo "  --guild ID      Default guild ID (default: @me)"
-      echo "  --color COLOR   Icon color: blurple, pink, red, yellow, green, cyan"
+      echo "  --icon PATH     Custom icon (local path or URL)"
+      echo "  --color COLOR   Fallback icon color: blurple, pink, red, yellow, green, cyan"
       echo "  --install       Install to ~/.local/opt and create .desktop file"
       echo ""
       echo "Example:"
-      echo "  ./build.sh --name MyServer --guild 123456789012345678 --color cyan --install"
+      echo "  ./build.sh --name MyServer --guild 123456789012345678 --icon ./server-icon.png --install"
+      echo "  ./build.sh --name MyServer --icon https://cdn.discordapp.com/icons/ID/HASH.webp --install"
       exit 0
       ;;
     *)
@@ -48,14 +55,40 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-ICON_PATH="$SCRIPT_DIR/icons/discord-${ICON_COLOR}.png"
-if [ ! -f "$ICON_PATH" ]; then
-  echo "Error: Icon not found: $ICON_PATH"
-  echo "Available colors: blurple, pink, red, yellow, green, cyan"
-  exit 1
+# Resolve icon
+RESOLVED_ICON=""
+if [ -n "$ICON_PATH" ]; then
+  if [[ "$ICON_PATH" == http* ]]; then
+    # Download URL
+    echo "Downloading icon..."
+    TEMP_ICON="$SCRIPT_DIR/build/temp-icon.png"
+    mkdir -p "$SCRIPT_DIR/build"
+    curl -sL "$ICON_PATH" -o "$TEMP_ICON"
+    # Convert to PNG if needed (webp, etc)
+    if command -v magick &> /dev/null; then
+      magick "$TEMP_ICON" -resize 256x256 "$TEMP_ICON.png"
+      mv "$TEMP_ICON.png" "$TEMP_ICON"
+    fi
+    RESOLVED_ICON="$TEMP_ICON"
+  elif [ -f "$ICON_PATH" ]; then
+    RESOLVED_ICON="$ICON_PATH"
+  else
+    echo "Error: Icon not found: $ICON_PATH"
+    exit 1
+  fi
+elif [ -n "$ICON_COLOR" ]; then
+  RESOLVED_ICON="$SCRIPT_DIR/icons/discord-${ICON_COLOR}.png"
+  if [ ! -f "$RESOLVED_ICON" ]; then
+    echo "Error: Color icon not found: $RESOLVED_ICON"
+    echo "Available colors: blurple, pink, red, yellow, green, cyan"
+    exit 1
+  fi
+else
+  # Default to blurple
+  RESOLVED_ICON="$SCRIPT_DIR/icons/discord-blurple.png"
 fi
 
-echo "Building $APP_NAME with $ICON_COLOR icon..."
+echo "Building $APP_NAME..."
 
 # Clean previous build with same name
 rm -rf "$SCRIPT_DIR/build/$APP_NAME-"*
@@ -63,7 +96,7 @@ rm -rf "$SCRIPT_DIR/build/$APP_NAME-"*
 # Build with nativefier
 npx nativefier \
   --name "$APP_NAME" \
-  --icon "$ICON_PATH" \
+  --icon "$RESOLVED_ICON" \
   --inject "$SCRIPT_DIR/hide-sidebar.css" \
   --single-instance \
   --tray \
@@ -115,7 +148,7 @@ if [ "$INSTALL" = true ]; then
   
   # Copy icon
   mkdir -p "$HOME/.local/share/icons"
-  cp "$ICON_PATH" "$ICON_INSTALL"
+  cp "$RESOLVED_ICON" "$ICON_INSTALL"
   
   # Create .desktop file
   cat > "$DESKTOP_FILE" << DESKTOP
@@ -141,3 +174,6 @@ else
   echo ""
   echo "To install system-wide, run with --install"
 fi
+
+# Cleanup temp icon
+rm -f "$SCRIPT_DIR/build/temp-icon.png"

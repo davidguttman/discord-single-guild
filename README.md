@@ -6,8 +6,8 @@ Standalone Discord web app that shows only one server (no guild sidebar).
 
 - Hides the guild/server sidebar completely (no gap)
 - Hides user status panel at bottom
+- Use your server's actual icon (or pick a color variant)
 - Accepts guild ID as argument for easy multi-server setup
-- 6 icon color variants to distinguish between apps
 - Fixes high-DPI scaling issues
 - `--install` flag creates .desktop file for app launchers
 
@@ -15,14 +15,17 @@ Standalone Discord web app that shows only one server (no guild sidebar).
 
 - Node.js / npm
 - nativefier (`npm install -g nativefier`)
+- ImageMagick (optional, for converting webp icons)
 
 ## Quick Start
 
 ```bash
+# Using the server's icon (right-click server icon in Discord → Copy Image Link)
+./build.sh --name "MyServer" --guild "YOUR_GUILD_ID" --icon "https://cdn.discordapp.com/icons/..." --install
+
+# Or use a color variant
 ./build.sh --name "MyServer" --guild "YOUR_GUILD_ID" --color cyan --install
 ```
-
-This builds the app, installs it to `~/.local/opt/`, and creates a .desktop file so you can launch it from walker/rofi/etc.
 
 ## Options
 
@@ -30,13 +33,23 @@ This builds the app, installs it to `~/.local/opt/`, and creates a .desktop file
 |--------|-------------|
 | `--name NAME` | App name (default: DiscordGuild) |
 | `--guild ID` | Default guild ID (default: @me) |
-| `--color COLOR` | Icon color (see below) |
+| `--icon PATH` | Custom icon - local file or URL |
+| `--color COLOR` | Fallback icon color (see below) |
 | `--install` | Install to ~/.local/opt and create .desktop file |
 
-## Icon Colors
+## Getting Your Server Icon
 
-| Color | Preview |
-|-------|---------|
+1. Open Discord
+2. Right-click the server icon in the sidebar
+3. Click "Copy Image Link"
+4. Use that URL with `--icon`
+
+## Icon Colors (fallback)
+
+If you don't want to use the server icon:
+
+| Color | Description |
+|-------|-------------|
 | `blurple` | Original Discord blue-violet |
 | `pink` | Magenta/fuchsia |
 | `red` | Coral red |
@@ -47,14 +60,17 @@ This builds the app, installs it to `~/.local/opt/`, and creates a .desktop file
 ## Examples
 
 ```bash
-# Install a server with cyan icon
-./build.sh --name "MyServer" --guild "123456789012345678" --color cyan --install
+# With server icon URL
+./build.sh --name "MyServer" \
+  --guild "123456789012345678" \
+  --icon "https://cdn.discordapp.com/icons/123/abc.webp" \
+  --install
 
-# Install work server with red icon
-./build.sh --name "WorkDiscord" --guild "234567890123456789" --color red --install
+# With local icon file
+./build.sh --name "MyServer" --icon ./my-icon.png --install
 
-# Build only (no install)
-./build.sh --name "TestApp" --color green
+# With color fallback
+./build.sh --name "WorkDiscord" --color red --install
 ```
 
 ## Installation Paths
