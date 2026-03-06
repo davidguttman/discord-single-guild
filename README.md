@@ -9,27 +9,31 @@ Standalone Discord web app that shows only one server (no guild sidebar).
 - Accepts guild ID as argument for easy multi-server setup
 - 6 icon color variants to distinguish between apps
 - Fixes high-DPI scaling issues
+- `--install` flag creates .desktop file for app launchers
 
 ## Requirements
 
 - Node.js / npm
 - nativefier (`npm install -g nativefier`)
 
-## Build
+## Quick Start
 
 ```bash
-./build.sh --name "AppName" --guild "GUILD_ID" --color COLOR
+./build.sh --name "MyServer" --guild "YOUR_GUILD_ID" --color cyan --install
 ```
 
-### Options
+This builds the app, installs it to `~/.local/opt/`, and creates a .desktop file so you can launch it from walker/rofi/etc.
+
+## Options
 
 | Option | Description |
 |--------|-------------|
 | `--name NAME` | App name (default: DiscordGuild) |
 | `--guild ID` | Default guild ID (default: @me) |
 | `--color COLOR` | Icon color (see below) |
+| `--install` | Install to ~/.local/opt and create .desktop file |
 
-### Icon Colors
+## Icon Colors
 
 | Color | Preview |
 |-------|---------|
@@ -43,25 +47,22 @@ Standalone Discord web app that shows only one server (no guild sidebar).
 ## Examples
 
 ```bash
-# Single server with cyan icon
-./build.sh --name "HouseOfHaku" --guild "1460071718444994726" --color cyan
+# Install a server with cyan icon
+./build.sh --name "MyServer" --guild "123456789012345678" --color cyan --install
 
-# Work server with red icon
-./build.sh --name "WorkDiscord" --guild "123456789" --color red
+# Install work server with red icon
+./build.sh --name "WorkDiscord" --guild "234567890123456789" --color red --install
 
-# Gaming server with green icon  
-./build.sh --name "GamingDiscord" --guild "987654321" --color green
+# Build only (no install)
+./build.sh --name "TestApp" --color green
 ```
 
-## Usage
+## Installation Paths
 
-```bash
-# Launch with default guild
-./build/HouseOfHaku-linux-x64/launch.sh
-
-# Override guild at runtime
-./build/HouseOfHaku-linux-x64/launch.sh 9876543210
-```
+When using `--install`:
+- App: `~/.local/opt/APP_NAME/`
+- Desktop file: `~/.local/share/applications/APP_NAME.desktop`
+- Icon: `~/.local/share/icons/APP_NAME.png`
 
 ## Finding Guild IDs
 
@@ -72,11 +73,3 @@ Standalone Discord web app that shows only one server (no guild sidebar).
 ## How It Works
 
 Uses [nativefier](https://github.com/nativefier/nativefier) to wrap Discord web in Electron, then injects CSS to hide the guild sidebar using stable `aria-label` selectors (not Discord's hashed class names that change with updates).
-
-### CSS Selectors Used
-
-```css
-nav[aria-label="Servers sidebar"]           /* The guild list */
-div[data-collapsed]:has(nav[...])           /* Parent container */
-section[aria-label="User status..."]        /* Bottom status bar */
-```
