@@ -90,8 +90,9 @@ fi
 
 echo "Building $APP_NAME..."
 
-# Clean previous build with same name
-rm -rf "$SCRIPT_DIR/build/$APP_NAME-"*
+# Clean previous build with same name (nativefier strips spaces)
+APP_NAME_NOSPACE="${APP_NAME// /}"
+rm -rf "$SCRIPT_DIR/build/$APP_NAME_NOSPACE-"*
 
 # Build with nativefier
 npx nativefier \
@@ -104,8 +105,8 @@ npx nativefier \
   "https://discord.com/channels/@me" \
   "$SCRIPT_DIR/build"
 
-# Find the output directory
-OUTPUT_DIR=$(find "$SCRIPT_DIR/build" -maxdepth 1 -type d -name "$APP_NAME-*" | head -1)
+# Find the output directory (APP_NAME_NOSPACE set above for cleanup)
+OUTPUT_DIR=$(find "$SCRIPT_DIR/build" -maxdepth 1 -type d -name "$APP_NAME_NOSPACE-*" | head -1)
 
 if [ -z "$OUTPUT_DIR" ]; then
   echo "Error: Build failed - output directory not found"
@@ -123,7 +124,7 @@ cat > "$OUTPUT_DIR/launch.sh" << LAUNCHER
 #!/bin/bash
 DIR="\$(cd "\$(dirname "\${BASH_SOURCE[0]}")" && pwd)"
 GUILD="\${1:-$GUILD_DEFAULT}"
-exec "\$DIR/$APP_NAME" --force-device-scale-factor=1 "https://discord.com/channels/\$GUILD"
+exec "\$DIR/$APP_NAME_NOSPACE" --force-device-scale-factor=1 "https://discord.com/channels/\$GUILD"
 LAUNCHER
 
 chmod +x "$OUTPUT_DIR/launch.sh"
@@ -133,9 +134,9 @@ echo "✓ Built: $OUTPUT_DIR"
 
 # Install if requested
 if [ "$INSTALL" = true ]; then
-  INSTALL_DIR="$HOME/.local/opt/$APP_NAME"
-  DESKTOP_FILE="$HOME/.local/share/applications/$APP_NAME.desktop"
-  ICON_INSTALL="$HOME/.local/share/icons/$APP_NAME.png"
+  INSTALL_DIR="$HOME/.local/opt/$APP_NAME_NOSPACE"
+  DESKTOP_FILE="$HOME/.local/share/applications/$APP_NAME_NOSPACE.desktop"
+  ICON_INSTALL="$HOME/.local/share/icons/$APP_NAME_NOSPACE.png"
   
   echo ""
   echo "Installing to $INSTALL_DIR..."
@@ -160,7 +161,7 @@ Icon=$ICON_INSTALL
 Terminal=false
 Type=Application
 Categories=Network;InstantMessaging;
-StartupWMClass=$APP_NAME
+StartupWMClass=$APP_NAME_NOSPACE
 DESKTOP
 
   echo "✓ Installed: $INSTALL_DIR"
