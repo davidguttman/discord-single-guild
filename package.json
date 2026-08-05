@@ -1,0 +1,71 @@
+{
+  "name": "discord-single-guild",
+  "version": "1.0.0",
+  "description": "A maintained Electron shell for focused, single-guild Discord windows",
+  "desktopName": "discord-single-guild.desktop",
+  "main": "src/main.js",
+  "author": "David Guttman",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/davidguttman/discord-single-guild.git"
+  },
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test",
+    "dist": "electron-builder --linux AppImage",
+    "smoke:packaged": "tmp=\"$(mktemp -d)\"; trap 'rm -rf \"$tmp\"' EXIT; HOME=\"$tmp\" XDG_CONFIG_HOME=\"$tmp/config\" DISCORD_SINGLE_GUILD_SMOKE_TEST=1 ./dist/linux-unpacked/discord-single-guild"
+  },
+  "dependencies": {
+    "electron-updater": "6.8.9"
+  },
+  "devDependencies": {
+    "electron": "43.3.0",
+    "electron-builder": "26.15.7"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "build": {
+    "appId": "com.github.davidguttman.discord-single-guild",
+    "productName": "Discord Single Guild",
+    "artifactName": "discord-single-guild-${version}-${arch}.${ext}",
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "hide-sidebar.css",
+        "to": "injections/hide-sidebar.css"
+      },
+      {
+        "from": "inject.js",
+        "to": "injections/inject.js"
+      },
+      {
+        "from": "icons",
+        "to": "icons",
+        "filter": [
+          "discord-*.png"
+        ]
+      }
+    ],
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Network;InstantMessaging",
+      "icon": "icons/discord-blurple.png"
+    },
+    "appImage": {
+      "artifactName": "discord-single-guild-${version}-${arch}.${ext}"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "davidguttman",
+      "repo": "discord-single-guild",
+      "releaseType": "release"
+    }
+  }
+}
