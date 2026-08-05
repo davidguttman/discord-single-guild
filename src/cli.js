@@ -1,3 +1,6 @@
+const VALUE_OPTIONS = new Set(['--name', '--guild', '--icon', '--color', '--profile']);
+const FLAG_OPTIONS = new Set(['--install', '--help', '-h', '--version', '-v']);
+
 function readValue(argv, index, option) {
   const argument = argv[index];
   const equals = argument.indexOf('=');
@@ -32,7 +35,7 @@ function parseCli(argv) {
     }
 
     const option = argument.split('=', 1)[0];
-    if (!['--name', '--guild', '--icon', '--color', '--profile'].includes(option)) {
+    if (!VALUE_OPTIONS.has(option)) {
       throw new Error(`Unknown option: ${argument}`);
     }
     const { value, consumed } = readValue(argv, index, option);
@@ -69,8 +72,36 @@ Examples:
 `;
 }
 
-function appArguments(argv, isPackaged) {
-  return argv.slice(isPackaged ? 1 : 2);
+function legacyProfileLauncherArguments(argv) {
+  const profileArguments = argv.filter((argument) => argument.startsWith('--profile='));
+  if (profileArguments.length !== 1) return argv;
+
+  const profileArgument = profileArguments[0];
+  const hasOtherAppOption = argv.some((argument) => {
+    if (argument === profileArgument) return false;
+    return FLAG_OPTIONS.has(argument) || VALUE_OPTIONS.has(argument.split('=', 1)[0]);
+  });
+  return hasOtherAppOption ? argv : [profileArgument];
 }
 
-module.exports = { appArguments, helpText, parseCli };
+function appArguments(argv, isPackaged) {
+  const argumentsAfterExecutable = argv.slice(isPackaged ? 1 : 2);
+  const chromiumBoundary = argumentsAfterExecutable.indexOf('--');
+  if (chromiumBoundary !== -1) return argumentsAfterExecutable.slice(chromiumBoundary + 1);
+
+  // v1.0.1 launchers had exactly one app-owned --profile= argument and no
+  // Chromium boundary. Preserve that shape while new launchers use `--`.
+  return legacyProfileLauncherArguments(argumentsAfterExecutable);
+}
+
+function forwardedAppArguments(argv, isPackaged, additionalData) {
+  if (
+    Array.isArray(additionalData?.appArguments) &&
+    additionalData.appArguments.every((argument) => typeof argument === 'string')
+  ) {
+    return [...additionalData.appArguments];
+  }
+  return appArguments(argv, isPackaged);
+}
+
+module.exports = { appArguments, forwardedAppArguments, helpText, parseCli };

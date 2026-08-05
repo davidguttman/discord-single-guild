@@ -67,7 +67,7 @@ test('desktop entry quotes executable arguments and removes control characters',
   assert.match(entry, /^Name=My Guild$/m);
   assert.match(
     entry,
-    /^Exec="\/home\/test user\/\.local\/opt\/discord-single-guild\/app\.AppImage" "--profile=my-guild"$/m,
+    /^Exec="\/home\/test user\/\.local\/opt\/discord-single-guild\/app\.AppImage" "--" "--profile=my-guild"$/m,
   );
   assert.match(entry, /^Icon=\/home\/test user\/\.local\/share\/icons\/my guild\.png$/m);
   assert.doesNotMatch(entry, /\.\.\//);
@@ -85,7 +85,7 @@ test('desktop entries apply both string and Exec escaping to special path charac
   assert.match(entry, /^Comment=Discord focused on Guild \\\\ 100%$/m);
   assert.equal(
     entry.match(/^Exec=.*$/m)[0],
-    'Exec="/home/space user/100%%/Discord \\\\"quoted\\\\" \\\\$cash \\\\`tick\\\\` \\\\\\\\ App.AppImage" "--profile=guild-100"',
+    'Exec="/home/space user/100%%/Discord \\\\"quoted\\\\" \\\\$cash \\\\`tick\\\\` \\\\\\\\ App.AppImage" "--" "--profile=guild-100"',
   );
   assert.match(entry, /^Icon=\/home\/100%\/icon \\\\ file\.png$/m);
   assert.doesNotMatch(entry.match(/^Exec=.*$/m)[0], /(^|[^%])%([^%]|$)/);

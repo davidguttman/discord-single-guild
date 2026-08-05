@@ -85,7 +85,9 @@ function desktopEntry({ name, executable, profileId, icon }) {
   const safeProfileId = normalizeProfileId(profileId);
   const safeExecutable = path.resolve(executable);
   const safeIcon = path.resolve(icon);
-  const exec = [safeExecutable, `--profile=${safeProfileId}`].map(quoteDesktopExecArg).join(' ');
+  const exec = [safeExecutable, '--', `--profile=${safeProfileId}`]
+    .map(quoteDesktopExecArg)
+    .join(' ');
 
   return [
     '[Desktop Entry]',

@@ -42,7 +42,7 @@ test('installs one safe profile without deleting unrelated user files', async (c
   assert.equal(await fs.readFile(unrelated, 'utf8'), 'unrelated');
   assert.equal(await fs.readFile(result.installedAppImage, 'utf8'), 'appimage');
   const desktop = await fs.readFile(result.desktopFile, 'utf8');
-  assert.match(desktop, /"--profile=my-guild"/);
+  assert.match(desktop, /"--" "--profile=my-guild"/);
   assert.match(desktop, /Exec=".*home with spaces.*discord-single-guild\.AppImage"/);
   assert.deepEqual(await store.get('my-guild'), result.profile);
 });

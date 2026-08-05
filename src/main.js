@@ -3,7 +3,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { app, BrowserWindow, dialog, Menu, session, shell } = require('electron');
 
-const { appArguments, helpText, parseCli } = require('./cli');
+const { appArguments, forwardedAppArguments, helpText, parseCli } = require('./cli');
 const {
   discordGuildUrl,
   normalizeColor,
@@ -29,6 +29,7 @@ const {
 const { createPermissionPolicy } = require('./permissions');
 const { installProfile, ProfileStore } = require('./profiles');
 const { createUpdater } = require('./updater');
+const { guildWindowOptions } = require('./window-options');
 
 app.setName('Discord Single Guild');
 if (process.platform === 'linux') app.setDesktopName('discord-single-guild.desktop');
@@ -56,8 +57,11 @@ function injectionPath(file) {
   return app.isPackaged ? assetPath('injections', file) : assetPath(file);
 }
 
-function parseProcessArguments(argv = process.argv) {
-  return parseCli(appArguments(argv, app.isPackaged));
+function parseProcessArguments(argv = process.argv, additionalData) {
+  const argvForApp = additionalData
+    ? forwardedAppArguments(argv, app.isPackaged, additionalData)
+    : appArguments(argv, app.isPackaged);
+  return parseCli(argvForApp);
 }
 
 function openExternal(rawUrl) {
@@ -268,23 +272,12 @@ function createGuildWindow(profile) {
     return existing;
   }
 
-  const window = new BrowserWindow({
-    width: 1240,
-    height: 850,
-    minWidth: 720,
-    minHeight: 500,
-    title: profile.name,
-    icon: profile.icon || assetPath('icons', 'discord-blurple.png'),
-    show: false,
-    webPreferences: {
-      contextIsolation: true,
-      nodeIntegration: false,
-      sandbox: true,
-      webSecurity: true,
-      allowRunningInsecureContent: false,
-      spellcheck: true,
-    },
-  });
+  const window = new BrowserWindow(
+    guildWindowOptions({
+      profile,
+      defaultIcon: assetPath('icons', 'discord-blurple.png'),
+    }),
+  );
 
   window.setTitle(profile.name);
   window.setProgressBar(-1);
@@ -443,10 +436,11 @@ function buildMenu() {
   }).catch((error) => console.error('Could not build menu:', error));
 }
 
+const initialAppArguments = appArguments(process.argv, app.isPackaged);
 let initialOptions = {};
 let fatalCliError = null;
 try {
-  initialOptions = parseProcessArguments();
+  initialOptions = parseCli(initialAppArguments);
 } catch (error) {
   fatalCliError = error;
   console.error(`${error.message}\n\n${helpText(path.basename(process.execPath))}`);
@@ -454,14 +448,16 @@ try {
 
 const initialContext = invocationContext({ appImage: process.env.APPIMAGE, cwd: process.cwd() });
 const wantsImmediateExit = Boolean(fatalCliError || initialOptions.help || initialOptions.version);
-const hasSingleInstanceLock = wantsImmediateExit || app.requestSingleInstanceLock(initialContext);
+const hasSingleInstanceLock =
+  wantsImmediateExit ||
+  app.requestSingleInstanceLock({ ...initialContext, appArguments: initialAppArguments });
 if (!hasSingleInstanceLock) app.quit();
 
 if (!wantsImmediateExit) {
   app.on('second-instance', (_event, argv, workingDirectory, additionalData) => {
     const context = forwardedInvocationContext(additionalData, workingDirectory);
     try {
-      const options = parseProcessArguments(argv);
+      const options = parseProcessArguments(argv, additionalData);
       void handleOptions(options, context).catch(reportArgumentError);
     } catch (error) {
       void reportArgumentError(error);
