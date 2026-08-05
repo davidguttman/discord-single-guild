@@ -115,7 +115,6 @@ async function copyLocalIcon(source, destinationBase, workingDirectory) {
 async function fetchHttpsIcon(source, { fetchImpl = fetch, timeoutMs = ICON_DOWNLOAD_TIMEOUT_MS } = {}) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(new Error('Icon download timed out.')), timeoutMs);
-  timer.unref?.();
   let current = new URL(source);
 
   try {
