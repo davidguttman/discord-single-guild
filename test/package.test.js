@@ -12,6 +12,7 @@ test('package manifest contains reproducible runtime, test, and AppImage release
   assert.match(packageJson.scripts.dist, /electron-builder.*AppImage/);
   assert.equal(packageJson.devDependencies.electron, '43.3.0');
   assert.equal(packageJson.devDependencies['electron-builder'], '26.15.7');
+  assert.equal(packageJson.build.toolsets.appimage, '1.0.3');
   assert.deepEqual(packageJson.build.files, ['src/**/*', 'package.json']);
   assert.deepEqual(
     packageJson.build.extraResources.map(({ from, to }) => [from, to]),

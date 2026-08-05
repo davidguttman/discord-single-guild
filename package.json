@@ -30,6 +30,9 @@
     "appId": "com.github.davidguttman.discord-single-guild",
     "productName": "Discord Single Guild",
     "artifactName": "discord-single-guild-${version}-${arch}.${ext}",
+    "toolsets": {
+      "appimage": "1.0.3"
+    },
     "files": [
       "src/**/*",
       "package.json"

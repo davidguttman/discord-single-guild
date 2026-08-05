@@ -14,7 +14,9 @@ A small, maintained Electron app for keeping one Discord guild in its own focuse
 
 ## Install a release (recommended)
 
-Download the latest `discord-single-guild-…AppImage` from this repository's GitHub Releases page, then:
+Download the latest `discord-single-guild-…AppImage` from this repository's GitHub Releases page. Release AppImages use electron-builder's static AppImage runtime and do not require FUSE2. This removes that specific dependency; it does not guarantee compatibility with every Linux distribution or environment.
+
+Then:
 
 ```bash
 chmod +x discord-single-guild-*.AppImage
