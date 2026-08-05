@@ -1,6 +1,6 @@
 {
   "name": "discord-single-guild",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A maintained Electron shell for focused, single-guild Discord windows",
   "desktopName": "discord-single-guild.desktop",
   "main": "src/main.js",
