@@ -1,2 +1,11 @@
 build/
+dist/
 node_modules/
+*.log
+
+# Never commit local Electron/Discord session or profile data.
+.config/
+profiles.json
+Cookies
+Local Storage/
+Session Storage/
